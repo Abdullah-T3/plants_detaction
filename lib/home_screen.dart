@@ -119,24 +119,23 @@ Future<void> classifyImage(File image) async {
       body: SingleChildScrollView(
         child: InfoWidget(
           builder: (context, deviceInfo) {
-
-          return Column(
+            return Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-               SizedBox(height: deviceInfo.localHeight * 0.05),
+               SizedBox(height: deviceInfo.screenHeight * 0.02),
               _image == null
                   ? Container(
-                      height: deviceInfo.screenHeight * 0.3,
+                      height: deviceInfo.screenHeight * 0.33,
                       width: double.infinity,
                       color: Colors.grey[300],
                       child:  Icon(
                         Icons.image,
-                        size: deviceInfo.screenWidth* 0.1,
+                        size: deviceInfo.screenWidth * 0.2,
                         color: Colors.grey,
                       ),
                     )
                   : Container(
-                      height: deviceInfo.screenHeight * 0.3,
+                      height: deviceInfo.screenHeight * 0.33,
                       width: double.infinity,
                       decoration: BoxDecoration(
                         image: DecorationImage(
@@ -145,7 +144,7 @@ Future<void> classifyImage(File image) async {
                         ),
                       ),
                     ),
-               SizedBox(height: deviceInfo.screenHeight * 0.05),
+               SizedBox(height: deviceInfo.screenHeight * 0.02),
               isLoading
                   ? const CircularProgressIndicator()
                   : Text(
@@ -156,7 +155,7 @@ Future<void> classifyImage(File image) async {
                       ),
                       textAlign: TextAlign.center,
                     ),
-               SizedBox(height: deviceInfo.screenHeight * 0.07),
+               SizedBox(height: deviceInfo.screenHeight * 0.02),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
@@ -182,11 +181,12 @@ Future<void> classifyImage(File image) async {
               ),
             ],
           );
-          },
+        }
         ),
       ),
     );
   }
+
   @override
   void dispose() {
     interpreter?.close();
