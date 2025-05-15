@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:plants_detaction/Responsive/ui_component/info_widget.dart';
 import 'package:tflite_flutter/tflite_flutter.dart';
 import 'package:image/image.dart' as img;
 
@@ -116,72 +117,76 @@ Future<void> classifyImage(File image) async {
         backgroundColor: Colors.green,
       ),
       body: SingleChildScrollView(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const SizedBox(height: 20),
-            _image == null
-                ? Container(
-                    height: 300,
-                    width: double.infinity,
-                    color: Colors.grey[300],
-                    child: const Icon(
-                      Icons.image,
-                      size: 100,
-                      color: Colors.grey,
-                    ),
-                  )
-                : Container(
-                    height: 300,
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      image: DecorationImage(
-                        image: FileImage(_image!),
-                        fit: BoxFit.contain,
+        child: InfoWidget(
+          builder: (context, deviceInfo) {
+
+          return Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+               SizedBox(height: deviceInfo.localHeight * 0.05),
+              _image == null
+                  ? Container(
+                      height: deviceInfo.screenHeight * 0.3,
+                      width: double.infinity,
+                      color: Colors.grey[300],
+                      child:  Icon(
+                        Icons.image,
+                        size: deviceInfo.screenWidth* 0.1,
+                        color: Colors.grey,
+                      ),
+                    )
+                  : Container(
+                      height: deviceInfo.screenHeight * 0.3,
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        image: DecorationImage(
+                          image: FileImage(_image!),
+                          fit: BoxFit.contain,
+                        ),
                       ),
                     ),
-                  ),
-            const SizedBox(height: 20),
-            isLoading
-                ? const CircularProgressIndicator()
-                : Text(
-                    result,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
+               SizedBox(height: deviceInfo.screenHeight * 0.05),
+              isLoading
+                  ? const CircularProgressIndicator()
+                  : Text(
+                      result,
+                      style:  TextStyle(
+                        fontSize: deviceInfo.screenWidth * 0.05,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.center,
                     ),
-                    textAlign: TextAlign.center,
+               SizedBox(height: deviceInfo.screenHeight * 0.07),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  ElevatedButton.icon(
+                    onPressed: () => getImage(ImageSource.camera),
+                    icon: const Icon(Icons.camera_alt),
+                    label: const Text('Camera'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green,
+                      foregroundColor: Colors.white,
+                    ),
                   ),
-            const SizedBox(height: 30),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                ElevatedButton.icon(
-                  onPressed: () => getImage(ImageSource.camera),
-                  icon: const Icon(Icons.camera_alt),
-                  label: const Text('Camera'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
-                    foregroundColor: Colors.white,
+                  ElevatedButton.icon(
+                    onPressed: () => getImage(ImageSource.gallery),
+                    icon: const Icon(Icons.photo_library),
+                    label: const Text('Gallery'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green,
+                      foregroundColor: Colors.white,
+                    ),
                   ),
-                ),
-                ElevatedButton.icon(
-                  onPressed: () => getImage(ImageSource.gallery),
-                  icon: const Icon(Icons.photo_library),
-                  label: const Text('Gallery'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
-                    foregroundColor: Colors.white,
-                  ),
-                ),
-              ],
-            ),
-          ],
+                ],
+              ),
+            ],
+          );
+          },
         ),
       ),
     );
   }
-
   @override
   void dispose() {
     interpreter?.close();
