@@ -3,7 +3,6 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/plants_detaction.iml" filepath="$PROJECT_DIR$/plants_detaction.iml" />
-      <module fileurl="file://$PROJECT_DIR$/android/plants_detaction_android.iml" filepath="$PROJECT_DIR$/android/plants_detaction_android.iml" />
     </modules>
   </component>
 </project>
