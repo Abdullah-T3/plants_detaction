@@ -175,19 +175,23 @@ Future<void> classifyImage(File image) async {
     
     // Debug the top prediction
     print('Top predicted class: $topClassIndex (${plantNames[topClassIndex]}) with probability: $topProbability');
-    
+    String formattedProb;
+    String resultText;
     // Format the probability as a percentage for better readability
-    String formattedProb = (topProbability * 100).toStringAsFixed(2) + "%";
-    
-    // Get the plant name for the top class
-    String plantName = topClassIndex < plantNames.length ? plantNames[topClassIndex] : "Unknown Plant";
-    
-    // Create a more detailed result text showing max probability class
-    String resultText = "Detected: $plantName\nConfidence: $formattedProb\n\nMax Probability Class: $topClassIndex (${plantNames[topClassIndex]})";
-    
-    // Debug information
-    print('Max Probability Class: $topClassIndex (${plantNames[topClassIndex]}) with confidence: $formattedProb');
-    
+    if(topProbability * 100 < 60) {
+      resultText = "Unrecognized photo";
+    } else {
+      formattedProb = (topProbability * 100).toStringAsFixed(2) + "%";
+      // Get the plant name for the top class
+      String plantName = topClassIndex < plantNames.length ? plantNames[topClassIndex] : "Unknown Plant";
+      
+      // Create a more detailed result text showing max probability class
+      resultText = "Detected: $plantName\nConfidence: $formattedProb\n\nMax Probability Class: $topClassIndex (${plantNames[topClassIndex]})";
+      
+      // Debug information
+      print('Max Probability Class: $topClassIndex (${plantNames[topClassIndex]}) with confidence: $formattedProb');
+    }
+
     setState(() {
       result = resultText;
       isLoading = false;
@@ -204,7 +208,7 @@ Future<void> classifyImage(File image) async {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Plant Identification' , style: TextStyle(color: Colors.white),),
+        title: const Text('Plantify' , style: TextStyle(color: Colors.white),),
         backgroundColor: Colors.green,
       ),
       body: Padding(
