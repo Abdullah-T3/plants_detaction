@@ -1,10 +1,10 @@
 import 'dart:io';
-import 'dart:typed_data';
-import 'dart:math' as Math;
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:tflite_flutter/tflite_flutter.dart';
 import 'package:image/image.dart' as img;
+import 'Responsive/enums/device_type.dart';
+import 'Responsive/ui_component/info_widget.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -22,10 +22,10 @@ class _HomeScreenState extends State<HomeScreen> {
   
   // Map class indices to plant names
   final List<String> plantNames = [
-    'Lettuce', // Class 0
-    'Cactus',  // Class 1
-    'Banana',  // Class 2
-    'Mint'     // Class 3
+  'Aloe vera', // Class 0
+  'Banana',  // Class 1
+  'Mint',  // Class 2
+  'lettuce'    // Class 3
   ];
 
   @override
@@ -42,11 +42,7 @@ class _HomeScreenState extends State<HomeScreen> {
       // Fix: Get both input and output shapes correctly
       print('Input shape: ${interpreter!.getInputTensor(0).shape}');
       print('Output shape: ${interpreter!.getOutputTensor(0).shape}');
-      
-      // Print model details
-      print('Input tensor shape: ${interpreter!.getInputTensor(0).shape}');
-      print('Output tensor shape: ${interpreter!.getOutputTensor(0).shape}');
-      
+
       // Verify the model has the correct number of output classes
       final outputShape = interpreter!.getOutputTensor(0).shape;
       if (outputShape[1] != plantNames.length) {
@@ -111,13 +107,12 @@ Future<void> classifyImage(File image) async {
     for (var y = 0; y < 299; y++) {
       for (var x = 0; x < 299; x++) {
         final pixel = resizedImage.getPixelSafe(x, y);
-        input[0][y][x][0] = img.getRed(pixel) / 255.0;
-        input[0][y][x][1] = img.getGreen(pixel) / 255.0;
-        input[0][y][x][2] = img.getBlue(pixel) / 255.0;
+        input[0][y][x][0] = img.getRed(pixel).toDouble();
+        input[0][y][x][1] = img.getGreen(pixel).toDouble();
+        input[0][y][x][2] = img.getBlue(pixel).toDouble();
       }
     }
-    
-    // Print sample of preprocessed pixels for debugging
+ 
     print('Sample of preprocessed pixels:');
     print('Pixel at (0,0): [${input[0][0][0][0]}, ${input[0][0][0][1]}, ${input[0][0][0][2]}]');
     print('Pixel at (150,150): [${input[0][150][150][0]}, ${input[0][150][150][1]}, ${input[0][150][150][2]}]');
@@ -138,14 +133,11 @@ Future<void> classifyImage(File image) async {
     print('Running inference...');
     print('Model output: $output');
     
-    // Find the class with highest probability
     int predictedIndex = 0;
     double maxProb = output[0][0];
     
-    // Create a list of (class index, probability) pairs
     List<MapEntry<int, double>> classProbabilities = [];
     
-    // Debug output to see raw values
     print('Raw output values:');
     for (int i = 0; i < output[0].length; i++) {
       double prob = output[0][i];
@@ -190,8 +182,11 @@ Future<void> classifyImage(File image) async {
     // Get the plant name for the top class
     String plantName = topClassIndex < plantNames.length ? plantNames[topClassIndex] : "Unknown Plant";
     
-    // Build the result string with the plant name and probability
-    String resultText = "Detected: $plantName\nConfidence: $formattedProb";
+    // Create a more detailed result text showing max probability class
+    String resultText = "Detected: $plantName\nConfidence: $formattedProb\n\nMax Probability Class: $topClassIndex (${plantNames[topClassIndex]})";
+    
+    // Debug information
+    print('Max Probability Class: $topClassIndex (${plantNames[topClassIndex]}) with confidence: $formattedProb');
     
     setState(() {
       result = resultText;
@@ -205,32 +200,43 @@ Future<void> classifyImage(File image) async {
     });
   }
 }
- 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Plant Identification'),
+        title: const Text('Plant Identification' , style: TextStyle(color: Colors.white),),
         backgroundColor: Colors.green,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            _image == null
-                ? Container(
-                    height: 250,
+        child: InfoWidget(
+          builder: (context, deviceInfo) {
+            // Adjust UI based on device type
+            final isTabletOrDesktop = deviceInfo.deviceType == DeviceType.tablet ||
+                deviceInfo.deviceType == DeviceType.desktop;
+            final imageHeight = isTabletOrDesktop ? 350.0 : 250.0;
+            final fontSize = isTabletOrDesktop ? 22.0 : 18.0;
+            final iconSize = isTabletOrDesktop ? 120.0 : 100.0;
+            final buttonSpacing = isTabletOrDesktop ? 30.0 : 20.0;
+
+            return SingleChildScrollView(
+
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  _image == null
+                      ? Container(
+                    height: imageHeight,
                     width: double.infinity,
                     color: Colors.grey[300],
-                    child: const Icon(
+                    child: Icon(
                       Icons.image,
-                      size: 100,
+                      size: iconSize,
                       color: Colors.grey,
                     ),
                   )
-                : Container(
-                    height: 250,
+                      : Container(
+                    height: imageHeight,
                     width: double.infinity,
                     decoration: BoxDecoration(
                       image: DecorationImage(
@@ -239,43 +245,53 @@ Future<void> classifyImage(File image) async {
                       ),
                     ),
                   ),
-            const SizedBox(height: 20),
-            isLoading
-                ? const CircularProgressIndicator()
-                : Text(
+                  SizedBox(height: buttonSpacing),
+                  isLoading
+                      ? const CircularProgressIndicator()
+                      : Text(
                     result,
-                    style: const TextStyle(
-                      fontSize: 18,
+                    style: TextStyle(
+                      fontSize: fontSize,
                       fontWeight: FontWeight.bold,
                     ),
                     textAlign: TextAlign.center,
                   ),
-            const SizedBox(height: 20),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                ElevatedButton.icon(
-                  onPressed: () => getImage(ImageSource.camera),
-                  icon: const Icon(Icons.camera_alt),
-                  label: const Text('Camera'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
-                    foregroundColor: Colors.white,
+                  SizedBox(height: buttonSpacing),
+                  isTabletOrDesktop && deviceInfo.orientation == Orientation.landscape
+                      ? Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      _buildButton(Icons.camera_alt, 'Camera', () => getImage(ImageSource.camera)),
+                      SizedBox(width: buttonSpacing),
+                      _buildButton(Icons.photo_library, 'Gallery', () => getImage(ImageSource.gallery)),
+                    ],
+                  )
+                      : Column(
+                    children: [
+                      _buildButton(Icons.camera_alt, 'Camera', () => getImage(ImageSource.camera)),
+                      SizedBox(height: buttonSpacing / 2),
+                      _buildButton(Icons.photo_library, 'Gallery', () => getImage(ImageSource.gallery)),
+                    ],
                   ),
-                ),
-                ElevatedButton.icon(
-                  onPressed: () => getImage(ImageSource.gallery),
-                  icon: const Icon(Icons.photo_library),
-                  label: const Text('Gallery'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
-                    foregroundColor: Colors.white,
-                  ),
-                ),
-              ],
-            ),
-          ],
+                ],
+              ),
+            );
+          },
         ),
+      ),
+    );
+  }
+
+  // Helper method to build consistent buttons
+  Widget _buildButton(IconData icon, String label, VoidCallback onPressed) {
+    return ElevatedButton.icon(
+      onPressed: onPressed,
+      icon: Icon(icon),
+      label: Text(label),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.green,
+        foregroundColor: Colors.white,
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       ),
     );
   }
